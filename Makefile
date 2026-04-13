@@ -50,8 +50,9 @@ build: pam monitor
 	@echo ""
 
 ## pam: Build the PAM module (.so)
-pam: $(BUILD_DIR)
+pam:
 	@echo "🔨 Building PAM module..."
+	@mkdir -p $(BUILD_DIR)
 	$(CGO_FLAGS) $(GO) build -buildmode=c-shared \
 		-ldflags="$(LDFLAGS)" \
 		-o $(PAM_MODULE) \
@@ -60,15 +61,13 @@ pam: $(BUILD_DIR)
 	@rm -f $(BUILD_DIR)/pam_keycloak_device.h
 
 ## monitor: Build the monitor daemon
-monitor: $(BUILD_DIR)
+monitor:
 	@echo "🔨 Building monitor daemon..."
+	@mkdir -p $(BUILD_DIR)
 	$(CGO_FLAGS) $(GO) build \
 		-ldflags="$(LDFLAGS)" \
 		-o $(MONITOR_BIN) \
 		./cmd/monitor/
-
-$(BUILD_DIR):
-	@mkdir -p $(BUILD_DIR)
 
 ## clean: Remove build artifacts
 clean:

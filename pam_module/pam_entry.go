@@ -11,30 +11,6 @@ package main
 // Forward declarations of C helpers defined in pam_conv.go
 char* get_pam_user(pam_handle_t *pamh);
 int   get_user_uid(const char *user);
-
-// CGo exporting creates a header, but to avoid conflicts with pam_modules.h
-// we define purely C wrappers with the correct 'const char **' signature.
-extern int go_pam_sm_authenticate(pam_handle_t*, int, int, char**);
-extern int go_pam_sm_setcred(pam_handle_t*, int, int, char**);
-extern int go_pam_sm_acct_mgmt(pam_handle_t*, int, int, char**);
-extern int go_pam_sm_open_session(pam_handle_t*, int, int, char**);
-extern int go_pam_sm_close_session(pam_handle_t*, int, int, char**);
-
-PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    return go_pam_sm_authenticate(pamh, flags, argc, (char**)argv);
-}
-PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    return go_pam_sm_setcred(pamh, flags, argc, (char**)argv);
-}
-PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    return go_pam_sm_acct_mgmt(pamh, flags, argc, (char**)argv);
-}
-PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    return go_pam_sm_open_session(pamh, flags, argc, (char**)argv);
-}
-PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    return go_pam_sm_close_session(pamh, flags, argc, (char**)argv);
-}
 */
 import "C"
 
