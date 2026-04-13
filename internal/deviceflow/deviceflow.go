@@ -47,9 +47,10 @@ func StartDeviceAuth(deviceAuthEndpoint, clientID, clientSecret, scopes string) 
 		data.Set("client_secret", clientSecret)
 	}
 
-	resp, err := http.PostForm(deviceAuthEndpoint, data)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm(deviceAuthEndpoint, data)
 	if err != nil {
-		return nil, fmt.Errorf("device auth request failed: %w", err)
+		return nil, fmt.Errorf("device auth request failed (network error or timeout): %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -88,6 +89,7 @@ func PollToken(tokenEndpoint, clientID, clientSecret, deviceCode string, interva
 
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	pollInterval := time.Duration(interval) * time.Second
+	client := &http.Client{Timeout: 10 * time.Second}
 
 	for {
 		if time.Now().After(deadline) {
@@ -103,7 +105,7 @@ func PollToken(tokenEndpoint, clientID, clientSecret, deviceCode string, interva
 			data.Set("client_secret", clientSecret)
 		}
 
-		resp, err := http.PostForm(tokenEndpoint, data)
+		resp, err := client.PostForm(tokenEndpoint, data)
 		if err != nil {
 			// Network error — retry after interval
 			time.Sleep(pollInterval)
