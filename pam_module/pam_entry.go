@@ -11,6 +11,30 @@ package main
 // Forward declarations of C helpers defined in pam_conv.go
 char* get_pam_user(pam_handle_t *pamh);
 int   get_user_uid(const char *user);
+
+// CGo exporting creates a header, but to avoid conflicts with pam_modules.h
+// we define purely C wrappers with the correct 'const char **' signature.
+extern int go_pam_sm_authenticate(pam_handle_t*, int, int, char**);
+extern int go_pam_sm_setcred(pam_handle_t*, int, int, char**);
+extern int go_pam_sm_acct_mgmt(pam_handle_t*, int, int, char**);
+extern int go_pam_sm_open_session(pam_handle_t*, int, int, char**);
+extern int go_pam_sm_close_session(pam_handle_t*, int, int, char**);
+
+PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    return go_pam_sm_authenticate(pamh, flags, argc, (char**)argv);
+}
+PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    return go_pam_sm_setcred(pamh, flags, argc, (char**)argv);
+}
+PAM_EXTERN int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    return go_pam_sm_acct_mgmt(pamh, flags, argc, (char**)argv);
+}
+PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    return go_pam_sm_open_session(pamh, flags, argc, (char**)argv);
+}
+PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, const char **argv) {
+    return go_pam_sm_close_session(pamh, flags, argc, (char**)argv);
+}
 */
 import "C"
 
@@ -81,8 +105,8 @@ func parseConfigPath(args []string) string {
 	return "" // use default
 }
 
-//export pam_sm_authenticate
-func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export go_pam_sm_authenticate
+func go_pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	runtime.GOMAXPROCS(1)
 
 	username := pamGetUser(pamh)
@@ -126,26 +150,26 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	return C.PAM_SUCCESS
 }
 
-//export pam_sm_setcred
-func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export go_pam_sm_setcred
+func go_pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
 }
 
-//export pam_sm_acct_mgmt
-func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export go_pam_sm_acct_mgmt
+func go_pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
 }
 
-//export pam_sm_open_session
-func pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export go_pam_sm_open_session
+func go_pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	// Session tracking is handled during pam_sm_authenticate
 	// because we need the Keycloak token response data (session_state)
 	// which is only available at authentication time.
 	return C.PAM_SUCCESS
 }
 
-//export pam_sm_close_session
-func pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export go_pam_sm_close_session
+func go_pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	runtime.GOMAXPROCS(1)
 
 	username := pamGetUser(pamh)
