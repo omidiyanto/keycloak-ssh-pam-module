@@ -86,16 +86,19 @@ func parseConfigPath(args []string) string {
 
 //export pam_sm_authenticate
 func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+	debugLog("pam_sm_authenticate CALLED!")
 	runtime.GOMAXPROCS(1)
 
 	username := pamGetUser(pamh)
 	if username == "" {
+		debugLog("failed to get username from PAM handle")
 		pamLogError("failed to get username from PAM handle")
 		return C.PAM_USER_UNKNOWN
 	}
 
 	uid := pamGetUserUID(username)
 	if uid < 0 {
+		debugLog("failed to get UID for user: %s", username)
 		pamLogError("failed to get UID for user: %s", username)
 		return C.PAM_USER_UNKNOWN
 	}
@@ -104,6 +107,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	args := sliceFromArgv(argc, argv)
 	configPath := parseConfigPath(args)
 
+	debugLog("starting Keycloak device flow authentication for user: %s (uid: %d)", username, uid)
 	pamLog("starting Keycloak device flow authentication for user: %s (uid: %d)", username, uid)
 
 	// Create PAM conversation callbacks for auth.go (pure Go code)
