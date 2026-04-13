@@ -1,0 +1,57 @@
+# ==============================================================================
+# Keycloak SSH PAM Configuration
+# ==============================================================================
+# This file configures both the PAM module (pam_keycloak_device.so) and the
+# backchannel logout monitor daemon (keycloak-ssh-monitor).
+#
+# Location: /etc/keycloak-ssh/config.yaml
+# ==============================================================================
+
+# Keycloak Server Connection
+keycloak:
+  # Base URL of your Keycloak server (no trailing slash)
+  server_url: "https://sso.domainanda.com"
+
+  # Keycloak Realm name
+  realm: "master"
+
+  # OAuth2 Client ID (must have Device Authorization Grant enabled)
+  client_id: "ssh-pam-client"
+
+  # Client Secret (leave empty for public clients)
+  client_secret: ""
+
+# Authentication Flow Parameters
+auth:
+  # Polling interval in seconds (Keycloak may override via response)
+  poll_interval_seconds: 5
+
+  # Maximum time to wait for user to complete browser login (seconds)
+  poll_timeout_seconds: 300
+
+  # OAuth2 scopes to request
+  scopes: "openid"
+
+# Session Tracking
+session:
+  # Directory to store active session files (must be writable by root)
+  storage_dir: "/var/run/keycloak-ssh/sessions"
+
+# Backchannel Logout Monitor Daemon
+monitor:
+  # Address and port for the webhook HTTP server
+  # Use a non-standard port to avoid conflicts
+  listen_address: "0.0.0.0:7291"
+
+  # TLS certificate and key (optional — leave empty for HTTP)
+  # Recommended: use TLS if Keycloak is on a different network
+  tls_cert: ""
+  tls_key: ""
+
+# Logging
+logging:
+  # Log level: debug, info, warn, error
+  level: "info"
+
+  # Use syslog for PAM module logging (always true for PAM, configurable for daemon)
+  syslog: true

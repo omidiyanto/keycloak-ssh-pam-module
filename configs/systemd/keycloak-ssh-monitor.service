@@ -1,0 +1,32 @@
+[Unit]
+Description=Keycloak SSH Session Monitor — Backchannel Logout Handler
+Documentation=https://github.com/satnusa/keycloak-pam-ssh
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/keycloak-ssh-monitor -config /etc/keycloak-ssh/config.yaml
+Restart=always
+RestartSec=5
+
+# Security hardening
+User=root
+Group=root
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/run/keycloak-ssh
+PrivateTmp=yes
+
+# Resource limits
+LimitNOFILE=1024
+MemoryMax=128M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=keycloak-ssh-monitor
+
+[Install]
+WantedBy=multi-user.target
