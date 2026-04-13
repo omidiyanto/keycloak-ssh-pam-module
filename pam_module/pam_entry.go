@@ -32,25 +32,27 @@ import (
 
 var pamLogger *syslog.Writer
 
-func init() {
-	var err error
-	pamLogger, err = syslog.New(syslog.LOG_AUTH|syslog.LOG_INFO, "pam_keycloak_device")
-	if err != nil {
-		pamLogger = nil
+func getLogger() *syslog.Writer {
+	if pamLogger == nil {
+		l, err := syslog.New(syslog.LOG_AUTH|syslog.LOG_INFO, "pam_keycloak_device")
+		if err == nil {
+			pamLogger = l
+		}
 	}
+	return pamLogger
 }
 
 func pamLog(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	if pamLogger != nil {
-		pamLogger.Info(msg)
+	if logger := getLogger(); logger != nil {
+		logger.Info(msg)
 	}
 }
 
 func pamLogError(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	if pamLogger != nil {
-		pamLogger.Err(msg)
+	if logger := getLogger(); logger != nil {
+		logger.Err(msg)
 	}
 }
 
@@ -87,7 +89,7 @@ func parseConfigPath(args []string) string {
 //export pam_sm_authenticate
 func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	debugLog("pam_sm_authenticate CALLED!")
-	runtime.GOMAXPROCS(1)
+
 
 	username := pamGetUser(pamh)
 	if username == "" {
@@ -153,7 +155,7 @@ func pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 //export pam_sm_close_session
 func pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	runtime.GOMAXPROCS(1)
+
 
 	username := pamGetUser(pamh)
 	if username == "" {
