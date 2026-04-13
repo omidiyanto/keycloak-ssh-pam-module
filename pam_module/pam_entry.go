@@ -5,8 +5,11 @@ package main
 /*
 #cgo LDFLAGS: -lpam -fPIC
 #include <security/pam_appl.h>
-#include <security/pam_modules.h>
 #include <stdlib.h>
+
+// IMPORTANT: Do NOT include <security/pam_modules.h> here to avoid
+// conflicting types of pam_sm_* functions when CGo exports them.
+// The constants like PAM_SUCCESS are implicitly dragged in from pam_appl.h anyway.
 
 // Forward declarations of C helpers defined in pam_conv.go
 char* get_pam_user(pam_handle_t *pamh);
@@ -81,8 +84,8 @@ func parseConfigPath(args []string) string {
 	return "" // use default
 }
 
-//export go_pam_sm_authenticate
-func go_pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export pam_sm_authenticate
+func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	runtime.GOMAXPROCS(1)
 
 	username := pamGetUser(pamh)
@@ -126,26 +129,26 @@ func go_pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.ch
 	return C.PAM_SUCCESS
 }
 
-//export go_pam_sm_setcred
-func go_pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export pam_sm_setcred
+func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
 }
 
-//export go_pam_sm_acct_mgmt
-func go_pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export pam_sm_acct_mgmt
+func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
 }
 
-//export go_pam_sm_open_session
-func go_pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export pam_sm_open_session
+func pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	// Session tracking is handled during pam_sm_authenticate
 	// because we need the Keycloak token response data (session_state)
 	// which is only available at authentication time.
 	return C.PAM_SUCCESS
 }
 
-//export go_pam_sm_close_session
-func go_pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+//export pam_sm_close_session
+func pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	runtime.GOMAXPROCS(1)
 
 	username := pamGetUser(pamh)
