@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"log/syslog"
 	"os"
-	"runtime"
 	"strings"
 	"unsafe"
 )
